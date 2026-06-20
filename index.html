@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Surprise For You! 🎁</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff4757;
+            --secondary: #ffa502;
+            --bg-gradient: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --text-dark: #2c3e50;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg-gradient); 
+            min-height: 100vh; 
+            font-family: 'Poppins', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow-x: hidden;
+            color: var(--text-dark);
+        }
+
+        /* Ambient floating particles */
+        .ambient-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* Glassmorphic main card */
+        .main-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            padding: 40px 30px; 
+            border-radius: 30px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1); 
+            max-width: 480px; 
+            width: 92%; 
+            position: relative; 
+            z-index: 10; 
+            text-align: center;
+            max-height: 95vh; 
+            overflow-y: auto;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.6s ease forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2 { font-family: 'Playfair Display', serif; font-weight: 600; margin-bottom: 15px; color: #1e272e; }
+        p { font-size: 15px; line-height: 1.6; color: #57606f; margin-bottom: 20px; }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 14px; color: #333; }
+        .form-group input, .form-group textarea { 
+            width: 100%; padding: 14px; border: 1px solid rgba(0,0,0,0.1); 
+            background: rgba(255,255,255,0.8); border-radius: 16px; 
+            font-size: 15px; outline: none; font-family: inherit; transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(255,71,87,0.15); }
+        
+        /* Premium Buttons */
+        .btn { 
+            color: white; border: none; padding: 16px 30px; font-size: 16px; font-weight: 600; 
+            border-radius: 50px; cursor: pointer; margin-top: 10px; transition: all 0.3s ease; 
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.1); }
+        .btn-primary { background: linear-gradient(45deg, #ff4757, #ff6b81); }
+        .btn-secondary { background: linear-gradient(45deg, #341f97, #54a0ff); }
+        .btn-whatsapp { background: #25D366; display: none; }
+        .btn-share { background: #8b62ff; display: none; }
+
+        /* Gifft.me style 3D Gift Box Animation */
+        .gift-box-wrapper {
+            position: relative;
+            width: 160px;
+            height: 200px;
+            margin: 40px auto;
+            cursor: pointer;
+        }
+        .gift-box-body {
+            position: absolute;
+            width: 140px;
+            height: 120px;
+            background: #ff4757;
+            bottom: 0;
+            left: 10px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 15px 30px rgba(255, 71, 87, 0.3);
+            animation: giftBounce 2s infinite ease-in-out;
+            z-index: 2;
+        }
+        .gift-box-lid {
+            position: absolute;
+            width: 160px;
+            height: 35px;
+            background: #ff5252;
+            bottom: 115px;
+            left: 0;
+            border-radius: 8px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            z-index: 3;
+            transform-origin: bottom left;
+            animation: lidBounce 2s infinite ease-in-out;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .ribbon-v { position: absolute; width: 24px; height: 100%; background: #ffdf00; left: 50%; transform: translateX(-50%); }
+        .ribbon-h { position: absolute; width: 100%; height: 20px; background: #ffdf00; top: 50%; transform: translateY(-50%); }
+        .bow-left, .bow-right {
+            position: absolute; width: 35px; height: 35px; border: 8px solid #ffdf00; border-radius: 50%; bottom: 142px;
+        }
+        .bow-left { left: 45px; transform: rotate(-35deg); }
+        .bow-right { right: 45px; transform: rotate(35deg); }
+
+        .gift-box-wrapper.open .gift-box-lid { transform: translate(-60px, -120px) rotate(-45deg); opacity: 0; }
+        .gift-box-wrapper.open .gift-box-body { transform: scale(0.4); opacity: 0; transition: all 0.5s ease 0.2s; }
+
+        @keyframes giftBounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.03); } }
+        @keyframes lidBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-13px); } }
+
+        /* Enhanced 3D Layered Cake Animation View */
+        .cake-container { 
+            position: relative; 
+            width: 240px; 
+            height: 200px; 
+            margin: 30px auto; 
+            transform-style: preserve-3d;
+            animation: premiumCakePop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, cakeFloat 4s ease-in-out infinite 1.2s;
+        }
+        
+        @keyframes premiumCakePop {
+            0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes cakeFloat {
+            0%, 100% { transform: translateY(0) rotateX(5deg); }
+            50% { transform: translateY(-12px) rotateX(10deg); }
+        }
+
+        .cake-base { width: 240px; height: 14px; background: #dcdde1; border-radius: 50%; position: absolute; bottom: 0; box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .cake-tier { 
+            position: absolute; left: 50%; transform: translateX(-50%); 
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); 
+            border-radius: 20px 20px 50% 50% / 12px 12px 28px 28px;
+            box-shadow: inset 0 -12px 25px rgba(0,0,0,0.18), 0 10px 20px rgba(0,0,0,0.08);
+        }
+        .tier-1 { width: 200px; height: 85px; bottom: 10px; }
+        .tier-2 { width: 145px; height: 65px; bottom: 72px; background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%); }
+        
+        /* Name Beautifully Emphasized On Top Tier */
+        .cake-name { 
+            position: absolute; width: 100%; text-align: center; top: 22px; 
+            font-family: 'Playfair Display', serif; font-weight: 700; color: #ff4757; 
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8); font-size: 18px; 
+            letter-spacing: 0.5px;
+        }
+        .candle { width: 10px; height: 40px; background: linear-gradient(to top, #4facfe, #00f2fe); position: absolute; left: 50%; transform: translateX(-50%); bottom: 128px; border-radius: 4px; z-index: 10; }
+        .flame { width: 14px; height: 24px; background: radial-gradient(circle, #fff, #ff7675); border-radius: 50% 50% 20% 20%; position: absolute; top: -20px; left: -2px; animation: flicker 0.15s infinite alternate; }
+        
+        @keyframes flicker { from { transform: scale(1); } to { transform: scale(1.25); } }
+
+        /* Polaroid Photo Presentation */
+        .polaroid-frame {
+            background: white;
+            padding: 15px 15px 35px 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            border-radius: 4px;
+            display: inline-block;
+            margin: 20px 0;
+            transform: rotate(-2deg);
+            max-width: 100%;
+            animation: photoEntrance 1s ease forwards;
+        }
+        @keyframes photoEntrance { from { opacity: 0; transform: scale(0.9) rotate(5deg); } to { opacity: 1; transform: scale(1) rotate(-2deg); } }
+        
+        .polaroid-frame img {
+            width: 100%; max-width: 260px; height: 260px; object-fit: cover; border-radius: 2px; border: 1px solid #f5f5f5;
+        }
+
+        .reveal-msg { font-family: 'Playfair Display', serif; font-style: italic; font-size: 19px; color: #485460; margin: 15px 0 25px 0; padding: 0 10px; line-height: 1.6; }
+
+        /* Utilities */
+        .status-box { background: rgba(255,255,255,0.9); padding: 12px; border-radius: 12px; font-size: 13px; margin-top: 10px; display: none; font-weight: 500; }
+        .spinner { display: none; width: 30px; height: 30px; border: 3px solid rgba(0,0,0,0.05); border-left-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 15px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg" id="ambient-layer"></div>
+
+    <div class="main-card" id="main-panel">
+        <div id="step-setup" class="step active">
+            <h1>Create a Gift Surprise ✨</h1>
+            <p>Gifft.me jaisa premium aur beautiful surprise link banayein sirf ek minute mein.</p>
+            
+            <div class="form-group">
+                <label>Birthday Boy/Girl Ka Naam:</label>
+                <input type="text" id="input-name" placeholder="E.g., Rahul Kumar" value="Rahul">
+            </div>
+            
+            <div class="form-group">
+                <label>Ek Secret Pyaara Message:</label>
+                <textarea id="input-msg" rows="3" placeholder="Apni wishes ya dil ki baat likhein..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Unki Ek Beautiful Photo:</label>
+                <input type="file" id="input-photo" accept="image/*" onchange="startBackgroundUpload(this)">
+            </div>
+
+            <div class="spinner" id="main-loader"></div>
+            <div class="status-box" id="status-info"></div>
+
+            <button class="btn btn-primary" id="btn-create" onclick="generatePremiumLink()">✨ Create Magic Link</button>
+            <button class="btn btn-whatsapp" id="btn-wa" onclick="shareToWhatsApp()">💬 Send via WhatsApp</button>
+            <button class="btn btn-share" id="btn-native" onclick="shareToAnywhere()">🔗 Share Surprise Link</button>
+        </div>
+
+        <div id="step-gift" class="step">
+            <h2>You Have a Gift Box! 🎁</h2>
+            <p>Sshh... Kisi ne aapke liye ek behtarin surprise bheja hai. Ise kholne ke liye box par tap karein! 👇</p>
+            
+            <div class="gift-box-wrapper" id="gift-clicker" onclick="triggerOpenGift()">
+                <div class="bow-left"></div><div class="bow-right"></div>
+                <div class="gift-box-lid"><div class="ribbon-h"></div></div>
+                <div class="gift-box-body"><div class="ribbon-v"></div></div>
+            </div>
+        </div>
+
+        <div id="step-cake" class="step">
+            <div class="cake-container">
+                <div class="cake-base"></div>
+                <div class="candle"><div class="flame"></div></div>
+                <div class="cake-tier tier-1"></div>
+                <div class="cake-tier tier-2">
+                    <div class="cake-name" id="inner-cake-name">Rahul</div>
+                </div>
+            </div>
+            <h1 style="color: var(--primary); margin-top: 10px;">Happy Birthday! 🎂</h1>
+            <p>Wish mango aur candle bujhao! Ab niche click karke apna secret gift open karo. 👇</p>
+            <button class="btn btn-primary" onclick="goToRevealScreen()">✨ View My Surprise Card ➔</button>
+        </div>
+
+        <div id="step-reveal" class="step">
+            <h2>A Message For You 🌸</h2>
+            <div class="polaroid-frame">
+                <img id="reveal-img" src="" alt="Celebrant">
+            </div>
+            <div class="reveal-msg" id="reveal-text"></div>
+            <p style="font-size: 13px; color: #a4b0be;">Have a fantastic blast year ahead! 🎉</p>
+        </div>
+    </div>
+
+    <audio id="bg-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+    <script>
+        const IMGBB_KEY = "6d207e02198a847aa98d0a2a901485a5";
+        let finalLink = "";
+        let uploadedUrl = "";
+        let isUploading = false;
+        let earlyClickSubmit = false;
+
+        window.onload = function() {
+            createBackgroundDecorations();
+            
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('name')) {
+                // Target recipient received link mode
+                document.getElementById('step-setup').classList.remove('active');
+                document.getElementById('step-gift').classList.add('active');
+                
+                // Pre-map content data
+                document.getElementById('inner-cake-name').innerText = params.get('name');
+                document.getElementById('reveal-text').innerText = params.get('msg') || "Wishing you a beautiful day filled with love and hearty surprises!";
+                document.getElementById('reveal-img').src = params.get('img') || "https://images.unsplash.com/photo-1530103862676-de88b485fe6c?auto=format&fit=crop&w=400&q=80";
+            }
+        };
+
+        function createBackgroundDecorations() {
+            const layer = document.getElementById('ambient-layer');
+            const items = ['🎈', '✨', '🌸', '❤️'];
+            for(let i=0; i<25; i++) {
+                let el = document.createElement('div');
+                el.innerText = items[Math.floor(Math.random() * items.length)];
+                el.style.position = 'absolute';
+                el.style.fontSize = Math.floor(Math.random() * 20 + 14) + 'px';
+                el.style.left = Math.floor(Math.random() * 100) + '%';
+                el.style.top = Math.floor(Math.random() * 100) + '%';
+                el.style.opacity = '0.22';
+                layer.appendChild(el);
+            }
+        }
+
+        function startBackgroundUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const info = document.getElementById('status-info');
+            info.style.display = 'block';
+            info.style.color = '#34495e';
+            info.innerText = "📸 Photo background mein save ho rahi hai...";
+            
+            isUploading = true;
+            uploadedUrl = "";
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 450;
+                    let width = img.width, height = img.height;
+                    
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(function(blob) {
+                        let fd = new FormData();
+                        fd.append("image", blob, "gift_photo.jpg");
+                        
+                        fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd })
+                        .then(res => res.json())
+                        .then(res => {
+                            isUploading = false;
+                            if (res.success) {
+                                uploadedUrl = res.data.url;
+                                if (earlyClickSubmit) {
+                                    generatePremiumLink();
+                                } else {
+                                    info.innerText = "✅ Photo ready aur cloud par sync ho gayi hai!";
+                                    setTimeout(() => { info.style.display = 'none'; }, 2000);
+                                }
+                            }
+                        }).catch(() => { isUploading = false; });
+                    }, 'image/jpeg', 0.65);
+                }
+            };
+        }
+
+        function generatePremiumLink() {
+            const name = document.getElementById('input-name').value.trim();
+            const msg = document.getElementById('input-msg').value.trim();
+            const fileInput = document.getElementById('input-photo').files[0];
+            const info = document.getElementById('status-info');
+            const loader = document.getElementById('main-loader');
+            const btn = document.getElementById('btn-create');
+
+            if (!name) { alert("Please enter a name first!"); return; }
+
+            if (fileInput && !uploadedUrl && isUploading) {
+                earlyClickSubmit = true;
+                info.style.display = 'block';
+                loader.style.display = 'block';
+                info.innerText = "⏳ Photo safe upload ho rahi hai, bas ek pal...";
+                btn.disabled = true;
+                return;
+            }
+
+            loader.style.display = 'none';
+            const cleanUrl = window.location.href.split('?')[0];
+            finalLink = `${cleanUrl}?name=${encodeURIComponent(name)}&msg=${encodeURIComponent(msg)}&img=${encodeURIComponent(uploadedUrl)}`;
+            
+            navigator.clipboard.writeText(finalLink).catch(() => {});
+            
+            info.style.display = 'block';
+            info.style.color = '#27ae60';
+            info.innerHTML = "<strong>🎉 Surprise Link Taiyar Hai!</strong><br>Niche diye buttons se direct share karein!";
+            
+            btn.style.display = 'none';
+            document.getElementById('btn-wa').style.display = 'flex';
+            document.getElementById('btn-native').style.display = 'flex';
+        }
+
+        function shareToWhatsApp() {
+            if(!finalLink) return;
+            const text = encodeURIComponent(`🎁 I have sent you a secret virtual gift surprise! Tap here to open it: ${finalLink}`);
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+        }
+
+        function shareToAnywhere() {
+            if(!finalLink) return;
+            if (navigator.share) {
+                navigator.share({ title: 'A Secret Gift For You!', text: 'Open this interactive surprise link', url: finalLink }).catch(() => {});
+            } else {
+                alert("Link copied to clipboard successfully!");
+            }
+        }
+
+        // Action when Gift Box gets clicked
+        function triggerOpenGift() {
+            const wrapper = document.getElementById('gift-clicker');
+            wrapper.classList.add('open');
+            
+            setTimeout(() => {
+                document.getElementById('step-gift').classList.remove('active');
+                // Moves directly to 3D Cake pop animation screen first
+                document.getElementById('step-cake').classList.add('active');
+                
+                try { document.getElementById('bg-audio').play(); } catch(e){}
+                // Massive celebration confetti launch
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }, 700);
+        }
+
+        // Action to proceed to final photo + card reveal
+        function goToRevealScreen() {
+            document.getElementById('step-cake').classList.remove('active');
+            document.getElementById('step-reveal').classList.add('active');
+            
+            // Subtle side confetti blast on the final slide
+            confetti({ particleCount: 40, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1 } });
+        }
+    </script>
+</body>
+</html>
